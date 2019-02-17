@@ -19,7 +19,7 @@ class Block:
 
 class Blockchain:
     #dificultad de calculo para generar un nuevo bloque y añadirlo al Blockchain
-    difficulty = 2
+    difficulty = 1
 
     def __init__(self):
         self.unconfirmed_transactions= []
@@ -35,3 +35,14 @@ class Blockchain:
     @property
     def last_block(self):
         return self.chain[-1]
+
+    # se intentarán distintos valores en nonce hasta obtener un hash que satisfaga el criterio de de dificultad.
+    def proof_of_work(self, block):
+        block.nonce = 0
+
+        computed_hash = block.compute_hash()
+        while not computed_hash.startswith('0' * Blockchain. difficulty):
+            block.nonce += 1
+            computed_hash = block.compute_hash()
+
+        return computed_hash
