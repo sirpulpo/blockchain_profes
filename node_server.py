@@ -92,6 +92,7 @@ class Blockchain:
     def mine(self):
         if not self.unconfirmed_transactions:
             return False
+
         last_block = self.last_block
 
         new_block = Block(index = last_block.index + 1,
@@ -102,6 +103,7 @@ class Blockchain:
         proof = self.proof_of_work(new_block)
         self.add_block(new_block, proof)
         self.unconfirmed_transactions = []
+        announce_new_block(new_block)
         return new_block.index
 
 
@@ -112,6 +114,7 @@ blockchain = Blockchain()
 
 # la dirección de otros miembros participantes en la red.
 peers = set()
+
 
 # punto de acceso para enviar nuevas transacciones (publicaciones en el blockchain).
 @app.route('/new_transaction', methods = ['POST'])
@@ -129,6 +132,7 @@ def new_transaction():
 
     return 'Succes', 201
 
+
 # punto de acceso para retornar la copia del blockchain que tiene el nodo.
 @app.route('/chain', methods = ['GET'])
 def get_chain():
@@ -140,6 +144,7 @@ def get_chain():
     return json.dumps({'length': len(chain_data),
                         'chain': chain_data})
 
+
 # punto de acceso para minar las transacciones sin confirmar.
 @app.route('/mine', methods = ['GET'])
 def mine_unconfirmed_transactions():
@@ -149,10 +154,12 @@ def mine_unconfirmed_transactions():
 
     return 'Block #{} is mined'.format(result)
 
+
 # punto de accesp para obtener las transacciones sin minarself.
 @app.route('/pending.txt')
 def get_pending_tx():
     return json.dumps(blockchain.unconfirmed_transactions)
+
 
 # punto de acceso para añadir nuevos miembros a la red.
 @app.route('/add_nodes', methods = ['POST'])
@@ -165,6 +172,7 @@ def register_new_peers():
         peers.add(node)
 
     return 'Success', 201
+
 
 # punto de acceso para añadir un bloque minado.
 @app.route('/add_block', methods = ['POST'])
@@ -182,6 +190,7 @@ def validate_and_add_block():
         return 'The block was discarted by the node', 400
 
     return 'Block added to the chain', 201
+
 
 # algoritmo para resolver conflictos y concensuar, busca la cadena valida más larga y reemplaza la nuestra por aquella.
 def consensus():
@@ -204,10 +213,12 @@ def consensus():
 
     return False
 
+
 # se anuncia a la red que un nuevo bloque a sido minado.
 def announce_new_block(block):
     for peer in peers:
         url = 'http://{}/add_block'.format(peer)
         request.post(url, data = json.dumps(block.__dict__, sort_keys=True))
+
 
 app.run(debug = True, port = 8000)
