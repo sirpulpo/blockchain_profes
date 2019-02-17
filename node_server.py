@@ -109,3 +109,19 @@ app = Flask(__name__)
 
 # una copia del nodo del Blockchain
 blockchain = Blockchain()
+
+# punto de acceso para enviar nuevas transacciones (publicaciones en el blockchain).
+@app.route('/new_transaction', methods = ['POST'])
+def new_transaction():
+    txt_data = request.get_json()
+    required_fields = ['author', 'content']
+
+    for field in required_fields:
+        if not txt_data.get(field):
+            return 'Invalid transaction data', 404
+
+    txt_data['timestamp'] = time.time()
+
+    blockchain.add_new_transaction(txt_data)
+
+    return 'Succes', 201
