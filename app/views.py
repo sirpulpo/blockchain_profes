@@ -10,7 +10,7 @@ CONNECTED_NODE_ADDRESS = "http://127.0.0.1:8000"
 
 
 posts = []
- def fetch_posts():
+def fetch_posts():
      get_chain_address = '{}/chain'.format(CONNECTED_NODE_ADDRESS)
      response = requests.get(get_chain_address)
      if response.status_code == 200:
@@ -32,8 +32,8 @@ def submit_textarea():
     author = request.form['author']
 
     post_object = {
-        'author' = author,
-        'content' = post_content
+        'author' : author,
+        'content' : post_content
     }
 
     new_tx_address = '{}/new_transaction'.format(CONNECTED_NODE_ADDRESS)

@@ -7,11 +7,12 @@ import requests
 
 class Block:
 
-    def __init__(self, transactions, timestamp, previus_hash):
+    def __init__(self, index, transactions, timestamp, previus_hash):
         self.index = index
-        sefl.transactions = transactions
+        self.transactions = transactions
         self.timestamp = timestamp
         self.previus_hash = previus_hash
+
         self.nonce = 0
 
     # creamos el hash del blocke y su contenido.
@@ -25,13 +26,13 @@ class Blockchain:
     difficulty = 1
 
     def __init__(self):
-        self.unconfirmed_transactions= []
+        self.unconfirmed_transactions = []
         self.chain = []
         self.create_genesis_block()
 
     # bloque génesis y anexarlo a la cadena. Tiene índice 0, hash anterior 0 y un hash válido.
     def create_genesis_block(self):
-        genesis_block = Block(0, [], time.time(), "0") # se instancia un objeto Block para el génesis.
+        genesis_block = Block(0, [], time.time(), '0') # se instancia un objeto Block para el génesis.
         genesis_block.hash = genesis_block.compute_hash() # se calcula su hash.
         self.chain.append(genesis_block) # se añade el génesis al chain.
 
