@@ -125,3 +125,41 @@ def new_transaction():
     blockchain.add_new_transaction(txt_data)
 
     return 'Succes', 201
+
+# punto de acceso para retornar la copia del blockchain que tiene el nodo.
+@app.route('/chain', methods = ['GET'])
+def get_chain():
+    concensus()
+    chain_data = []
+    for block in blockchain.chain:
+        chain_data.append(block.__dict__)
+
+    return json.dumps({'length': len(chain_data),
+                        'chain': chain_data})
+
+# punto de acceso para minar las transacciones sin confirmar.
+@app.route('/mine', methods = ['GET'])
+def mine_unconfirmed_transactions():
+    result = blockchain.mine()
+    if not result:
+        return 'No transactions to mine.'
+
+    return 'Block #{} is mined'.format(result)
+
+# punto de accesp para obtener las transacciones sin minarself.
+@app.route('/pending.txt')
+def get_pending_tx():
+    return json.dumps(blockchain.unconfirmed_transactions)
+
+# punto de acceso para añadir nuevos miembros a la red.
+@app.route('/add_nodes', methods = ['POST'])
+def register_new_peers():
+    nodes = request.get.json()
+    if not nodes:
+        return 'Invalid data', 400
+
+    for node in nodes:
+        peers.add(node)
+
+    return 'Success', 201
+# 
