@@ -12,7 +12,6 @@ class Block:
         self.transactions = transactions
         self.timestamp = timestamp
         self.previus_hash = previus_hash
-
         self.nonce = 0
 
     # creamos el hash del blocke y su contenido.
@@ -22,15 +21,16 @@ class Block:
 
 
 class Blockchain:
-    #dificultad de calculo para generar un nuevo bloque y añadirlo al Blockchain
-    difficulty = 1
+    #dificultad de calculo para PoW.
+    difficulty = 1 # no dejarla en 1.
 
     def __init__(self):
         self.unconfirmed_transactions = []
         self.chain = []
         self.create_genesis_block()
 
-    # bloque génesis y anexarlo a la cadena. Tiene índice 0, hash anterior 0 y un hash válido.
+    # bloque génesis para anexarlo a la cadena.
+    # Tiene índice 0, hash anterior 0 y un hash válido.
     def create_genesis_block(self):
         genesis_block = Block(0, [], time.time(), '0') # se instancia un objeto Block para el génesis.
         genesis_block.hash = genesis_block.compute_hash() # se calcula su hash.
@@ -38,9 +38,9 @@ class Blockchain:
 
     @property
     def last_block(self):
-        return self.chain[-1] # verificar que pasa con el génesis, ¿se regresa a sí mismo?
+        return self.chain[-1] # verificar lo del génesis, ¿si se regresa a sí mismo?
 
-    # se intentarán distintos valores en nonce hasta obtener un hash que satisfaga el criterio de de dificultad.
+    # se intentarán distintos valores en nonce hasta obtener un hash que satisfaga el criterio.
     def proof_of_work(self, block):
         block.nonce = 0
         computed_hash = block.compute_hash()
@@ -52,11 +52,12 @@ class Blockchain:
 
     # verificar el block para agregarlo al chain.
     def add_block(self, block, proof):
-        previous_hash = self.last_block.hash
-        # se verifica si el hash anterior hace referencia al referido en este blok.
+        previous_hash = self.last_block.hash # se carga el hash del blocke anterior.
+        # se verifica si el hash anterior hace referencia al referido en este bloque.
         if previous_hash != block.previus_hash:
             return False
         # se verifica si la prueba de trabajo es valida.
+        # if not Blockchain.is_valid_proof(block, proof):
         if not self.is_valid_proof(block, proof):
             return False
 
@@ -79,18 +80,21 @@ class Blockchain:
 
         for block in chain:
             block_hash = block.hash
+            # se elimina el hash para volver a calcularlosh usando el método compute_hash().
             delattr(block, 'hash')
 
             if not cls.is_valid_proof(block, block.hash) or \
                     previus_hash != block.previus_hash:
                 result = False
                 break
+
             block.hash, previus_hash = block_hash, block_hash
 
         return result
 
     # las transacciones pendientes se añaden al bloque y se calcula su prueba de trabajo.
     def mine(self):
+
         if not self.unconfirmed_transactions:
             return False
 
@@ -103,7 +107,9 @@ class Blockchain:
 
         proof = self.proof_of_work(new_block)
         self.add_block(new_block, proof)
+
         self.unconfirmed_transactions = []
+        # se anuncia a la red que se mino y agrego un nuevo bloque.
         announce_new_block(new_block)
         return new_block.index
 
@@ -121,6 +127,7 @@ peers = set()
 @app.route('/new_transaction', methods = ['POST'])
 def new_transaction():
     txt_data = request.get_json()
+    # añadir campos para profesor y calificación.
     required_fields = ['author', 'content']
 
     for field in required_fields:
@@ -131,13 +138,14 @@ def new_transaction():
 
     blockchain.add_new_transaction(txt_data)
 
-    return 'Succes', 201
+    return 'Success', 201
 
 
 # punto de acceso para retornar la copia del blockchain que tiene el nodo.
 @app.route('/chain', methods = ['GET'])
 def get_chain():
-    concensus()
+    # nos aseguramos de tener la cadena más larga.
+    consensus()
     chain_data = []
     for block in blockchain.chain:
         chain_data.append(block.__dict__)
@@ -149,6 +157,7 @@ def get_chain():
 # punto de acceso para minar las transacciones sin confirmar.
 @app.route('/mine', methods = ['GET'])
 def mine_unconfirmed_transactions():
+
     result = blockchain.mine()
     if not result:
         return 'No transactions to mine.'
@@ -156,16 +165,16 @@ def mine_unconfirmed_transactions():
     return 'Block #{} is mined'.format(result)
 
 
-# punto de accesp para obtener las transacciones sin minarself.
+# punto de accesp para obtener las transacciones sin minar.
 @app.route('/pending.txt')
 def get_pending_tx():
     return json.dumps(blockchain.unconfirmed_transactions)
 
 
-# punto de acceso para añadir nuevos miembros a la red.
+# punto de acceso para añadir nuevos miembros (peers) a la red.
 @app.route('/add_nodes', methods = ['POST'])
 def register_new_peers():
-    nodes = request.get.json()
+    nodes = request.get_json()
     if not nodes:
         return 'Invalid data', 400
 
@@ -195,14 +204,15 @@ def validate_and_add_block():
 
 # algoritmo para resolver conflictos y concensuar, busca la cadena valida más larga y reemplaza la nuestra por aquella.
 def consensus():
+
     global blockchain
     longest_chain = None
     current_len = len(blockchain.chain)
 
     for node in peers:
         response = request.get('http://{}/chain'.format(node))
-        length = response.json['length']
-        chain = response.json['chain']
+        length = response.json()['length']
+        chain = response.json()['chain']
 
         if length > current_len and blockchain.check_chain_validity(chain):
             current_len = length
@@ -216,10 +226,11 @@ def consensus():
 
 
 # se anuncia a la red que un nuevo bloque a sido minado.
+# Otros bloques podran verificar la PoW y agregarla a sus respectivas cadenas.
 def announce_new_block(block):
     for peer in peers:
         url = 'http://{}/add_block'.format(peer)
-        request.post(url, data = json.dumps(block.__dict__, sort_keys=True))
+        request.post(url, data = json.dumps(block.__dict__, sort_keys = True))
 
 
 app.run(debug = True, port = 8000)
