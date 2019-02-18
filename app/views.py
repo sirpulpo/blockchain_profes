@@ -24,7 +24,7 @@ def fetch_posts():
         for block in  chain['chain']:
             for tx in  block['transactions']:
                 tx["index"] = block["index"]
-                tx["hash"] = block["previous_hash"]
+                tx["hash"] = block["previus_hash"]
                 content.append(tx)
 
         global posts
@@ -46,17 +46,19 @@ def index():
 def submit_textarea():
     post_content = request.form['content']
     author = request.form['author']
+    teacher = request.form['teacher']
+    calif = request.form['calif']
 
     post_object = {
         'author' : author,
-        'content' : post_content
-        # añadir nombre del profesor
-        # y calificación.
+        'content' : post_content,
+        'teacher' : teacher,
+        'calif' : calif
     }
 
     # enviar una nueva transacción.
     new_tx_address = '{}/new_transaction'.format(CONNECTED_NODE_ADDRESS)
-    request.post(new_tx_address,
+    requests.post(new_tx_address,
                 json = post_object,
                 headers = {'Content-type': 'application/json'})
 

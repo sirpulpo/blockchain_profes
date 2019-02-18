@@ -6,7 +6,11 @@
 
 	<center>
 	<form action="/submit" id="textform" method="post">
-	    <textarea name="content" rows="4" cols="50" placeholder="Escribe un comentario hacerca de tu profesor."></textarea>
+		<input type="text" name="teacher" placeholder="Tu profesor">
+		<input type="number" name="calif" placeholder="Calificación">
+		<br>
+		<br>
+		<textarea name="content" rows="4" cols="50" placeholder="Escribe un comentario acerca de tu profesor."></textarea>
 	    <br>
 	    <input type="text" name="author" placeholder="Tu nombre">
 	    <input type="submit" value="Post">
@@ -31,6 +35,8 @@
 	   </div>
 	   <div>
 	      <div class="post_box-body">
+			 <p>{{post.teacher}}</p>
+			 <p>{{post.calif}}</p>
 	         <p>{{post.content}}</p>
 	      </div>
 	   </div>
